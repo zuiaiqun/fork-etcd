@@ -5,6 +5,7 @@
 /gopath.proto
 /release
 /bin
+test
 *.etcd
 *.log
 /etcd
