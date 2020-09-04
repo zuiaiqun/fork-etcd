@@ -177,7 +177,7 @@ type Config struct {
 	MaxTxnOps           uint   `json:"max-txn-ops"`
 	MaxRequestBytes     uint   `json:"max-request-bytes"`
 
-	LPUrls, LCUrls []url.URL
+	LPUrls, LCUrls []url.URL // lp表示peer：server to server; lcurls表示client communication
 	APUrls, ACUrls []url.URL
 	ClientTLSInfo  transport.TLSInfo
 	ClientAutoTLS  bool

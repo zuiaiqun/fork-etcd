@@ -48,7 +48,7 @@ import (
 
 type serveCtx struct {
 	lg       *zap.Logger
-	l        net.Listener
+	l        net.Listener // 监听的fd。每个监听的fd都对应一个serverCtx
 	addr     string
 	network  string
 	secure   bool
@@ -57,7 +57,7 @@ type serveCtx struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 
-	userHandlers    map[string]http.Handler
+	userHandlers    map[string]http.Handler //每个path，对应的handler
 	serviceRegister func(*grpc.Server)
 	serversC        chan *servers
 }
@@ -108,6 +108,7 @@ func (sctx *serveCtx) serve(
 		}
 	}()
 
+	// local insecure
 	if sctx.insecure {
 		gs = v3rpc.Server(s, nil, gopts...)
 		v3electionpb.RegisterElectionServer(gs, servElection)

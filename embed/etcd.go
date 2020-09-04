@@ -65,8 +65,8 @@ const (
 
 // Etcd contains a running etcd server and its listeners.
 type Etcd struct {
-	Peers   []*peerListener
-	Clients []net.Listener
+	Peers   []*peerListener // raft
+	Clients []net.Listener // client http
 	// a map of contexts for the servers that serves client requests.
 	sctxs            map[string]*serveCtx
 	metricsListeners []net.Listener
@@ -89,6 +89,7 @@ type peerListener struct {
 // StartEtcd launches the etcd server and HTTP handlers for client/server communication.
 // The returned Etcd.Server is not guaranteed to have joined the cluster. Wait
 // on the Etcd.Server.ReadyNotify() channel to know when it completes and is ready for use.
+// 被etcd main调用
 func StartEtcd(inCfg *Config) (e *Etcd, err error) {
 	if err = inCfg.Validate(); err != nil {
 		return nil, err
@@ -114,6 +115,8 @@ func StartEtcd(inCfg *Config) (e *Etcd, err error) {
 		"configuring peer listeners",
 		zap.Strings("listen-peer-urls", e.cfg.getLPURLs()),
 	)
+
+	// 初始化raft端口2380
 	if e.Peers, err = configurePeerListeners(cfg); err != nil {
 		return e, err
 	}
@@ -122,10 +125,13 @@ func StartEtcd(inCfg *Config) (e *Etcd, err error) {
 		"configuring client listeners",
 		zap.Strings("listen-client-urls", e.cfg.getLCURLs()),
 	)
+
+	// 初始化需要监听的http端口：2379
 	if e.sctxs, err = configureClientListeners(cfg); err != nil {
 		return e, err
 	}
 
+	// 这里已经监听了2379的端口
 	for _, sctx := range e.sctxs {
 		e.Clients = append(e.Clients, sctx.l)
 	}
@@ -202,7 +208,10 @@ func StartEtcd(inCfg *Config) (e *Etcd, err error) {
 		CompactionBatchLimit:        cfg.ExperimentalCompactionBatchLimit,
 		WatchProgressNotifyInterval: cfg.ExperimentalWatchProgressNotifyInterval,
 	}
+	//
 	print(e.cfg.logger, *cfg, srvcfg, memberInitialized)
+
+	// 启动etcd server
 	if e.Server, err = etcdserver.NewServer(srvcfg); err != nil {
 		return e, err
 	}
@@ -228,6 +237,7 @@ func StartEtcd(inCfg *Config) (e *Etcd, err error) {
 	if err = e.serveClients(); err != nil {
 		return e, err
 	}
+
 	if err = e.serveMetrics(); err != nil {
 		return e, err
 	}
@@ -562,6 +572,7 @@ func configureClientListeners(cfg *Config) (sctxs map[string]*serveCtx, err erro
 			continue
 		}
 
+		// 创建监听的端口：包含http://2379
 		if sctx.l, err = net.Listen(network, addr); err != nil {
 			return nil, err
 		}
