@@ -307,6 +307,7 @@ func NewServer(cfg ServerConfig) (srv *EtcdServer, err error) {
 		return nil, fmt.Errorf("cannot access data directory: %v", terr)
 	}
 
+	// wal 日志文件: 当前目录下./default.etcd/member/xxxx.wal
 	haveWAL := wal.Exist(cfg.WALDir())
 
 	if err = fileutil.TouchDirAll(cfg.SnapDir()); err != nil {
@@ -399,6 +400,7 @@ func NewServer(cfg ServerConfig) (srv *EtcdServer, err error) {
 		id, n, s, w = startNode(cfg, cl, cl.MemberIDs())
 		cl.SetID(id, cl.ID())
 
+	// wal日志文件
 	case haveWAL:
 		if err = fileutil.IsDirWriteable(cfg.MemberDir()); err != nil {
 			return nil, fmt.Errorf("cannot write to member directory: %v", err)

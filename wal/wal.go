@@ -70,6 +70,7 @@ var (
 // A newly created WAL is in append mode, and ready for appending records.
 // A just opened WAL is in read mode, and ready for reading records.
 // The WAL will be ready for appending after reading out all the previous records.
+// write-ahead-log：修改之前先将操作记录到文件里
 type WAL struct {
 	lg *zap.Logger
 
