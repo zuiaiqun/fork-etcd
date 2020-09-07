@@ -56,10 +56,13 @@ func NewQuotaKVServer(s *etcdserver.EtcdServer) pb.KVServer {
 	}
 }
 
+// Put 接口
 func (s *quotaKVServer) Put(ctx context.Context, r *pb.PutRequest) (*pb.PutResponse, error) {
 	if err := s.qa.check(ctx, r); err != nil {
 		return nil, err
 	}
+	// s.KVserver.Put 会调用v3rpc/key.KVServer 再调用v3_server.Put
+	// 整个逻辑均在etcdserver下
 	return s.KVServer.Put(ctx, r)
 }
 

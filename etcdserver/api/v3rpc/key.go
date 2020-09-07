@@ -52,11 +52,13 @@ func (s *kvServer) Range(ctx context.Context, r *pb.RangeRequest) (*pb.RangeResp
 	return resp, nil
 }
 
+// put执行逻辑
 func (s *kvServer) Put(ctx context.Context, r *pb.PutRequest) (*pb.PutResponse, error) {
 	if err := checkPutRequest(r); err != nil {
 		return nil, err
 	}
 
+	// s.kv 是etcdserver.EtcdServer，实现了RaftKV接口, 最终会调用v3_server.put
 	resp, err := s.kv.Put(ctx, r)
 	if err != nil {
 		return nil, togRPCError(err)
