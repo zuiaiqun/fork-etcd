@@ -236,6 +236,8 @@ func StartEtcd(inCfg *Config) (e *Etcd, err error) {
 	if err = e.servePeers(); err != nil {
 		return e, err
 	}
+
+	// 监听客户端端口：对每个sctx
 	if err = e.serveClients(); err != nil {
 		return e, err
 	}

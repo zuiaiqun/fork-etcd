@@ -92,6 +92,8 @@ func (sctx *serveCtx) serve(
 	errHandler func(error),
 	gopts ...grpc.ServerOption) (err error) {
 	logger := defaultLog.New(ioutil.Discard, "etcdhttp", 0)
+
+	// 等服务准备完毕
 	<-s.ReadyNotify()
 
 	sctx.lg.Info("ready to serve client requests")
@@ -110,6 +112,7 @@ func (sctx *serveCtx) serve(
 
 	// local insecure
 	if sctx.insecure {
+		// 注册gRPC相关接口，get/put等等
 		gs = v3rpc.Server(s, nil, gopts...)
 		v3electionpb.RegisterElectionServer(gs, servElection)
 		v3lockpb.RegisterLockServer(gs, servLock)
@@ -117,6 +120,7 @@ func (sctx *serveCtx) serve(
 			sctx.serviceRegister(gs)
 		}
 		grpcl := m.Match(cmux.HTTP2())
+		// 启动gRPC服务
 		go func() { errHandler(gs.Serve(grpcl)) }()
 
 		var gwmux *gw.ServeMux
