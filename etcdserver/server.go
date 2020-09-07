@@ -283,6 +283,7 @@ type EtcdServer struct {
 // NewServer creates a new EtcdServer from the supplied configuration. The
 // configuration is considered static for the lifetime of the EtcdServer.
 func NewServer(cfg ServerConfig) (srv *EtcdServer, err error) {
+	// load data from disk
 	st := v2store.New(StoreClusterPrefix, StoreKeysPrefix)
 
 	var (
@@ -453,7 +454,9 @@ func NewServer(cfg ServerConfig) (srv *EtcdServer, err error) {
 			)
 		}
 
+		// 是否强制启动新集群
 		if !cfg.ForceNewCluster {
+			// 会启动raft库node.Start
 			id, cl, n, s, w = restartNode(cfg, snapshot)
 		} else {
 			id, cl, n, s, w = restartAsStandaloneNode(cfg, snapshot)
@@ -931,6 +934,7 @@ func (s *EtcdServer) run() {
 			}
 		},
 	}
+	// etcdserver/raft.start
 	s.r.start(rh)
 
 	ep := etcdProgress{

@@ -211,7 +211,8 @@ func StartEtcd(inCfg *Config) (e *Etcd, err error) {
 	//
 	print(e.cfg.logger, *cfg, srvcfg, memberInitialized)
 
-	// 启动etcd server
+	// 初始化etcd server等配置
+	// 会去检查wal等配置，启动raft.start
 	if e.Server, err = etcdserver.NewServer(srvcfg); err != nil {
 		return e, err
 	}
@@ -229,6 +230,7 @@ func StartEtcd(inCfg *Config) (e *Etcd, err error) {
 			return e, err
 		}
 	}
+	// server初始化完毕后，启动
 	e.Server.Start()
 
 	if err = e.servePeers(); err != nil {
